@@ -1,6 +1,10 @@
-import Architect
-import Lean
-import Cli
+module
+
+public meta import Architect
+public meta import Lean
+public meta import Cli
+
+public meta section
 
 /-!
 This executable extracts the blueprint data from a module, or

@@ -1,6 +1,10 @@
-import Architect.CollectUsed
-import Architect.Content
-import Architect.Tactic
+module
+
+public meta import Architect.CollectUsed
+public meta import Architect.Content
+public meta import Architect.Tactic
+
+public meta section
 
 
 open Lean

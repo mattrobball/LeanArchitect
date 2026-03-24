@@ -1,5 +1,9 @@
-import Lean
-import Architect.Basic
+module
+
+public import Lean
+public import Architect.Basic
+
+public section
 
 /-!
 This is similar to Lean's `collectAxioms`, but collects nodes in the blueprint (plus all axioms)

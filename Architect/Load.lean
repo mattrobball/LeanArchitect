@@ -1,4 +1,8 @@
-import Architect.Output
+module
+
+public meta import Architect.Output
+
+public meta section
 
 
 namespace Architect

@@ -1,6 +1,10 @@
-import Lean
-import Batteries.Lean.NameMapAttribute
-import Architect.Basic
+module
+
+public meta import Lean
+public meta import Batteries.Lean.NameMapAttribute
+public meta import Architect.Basic
+
+public meta section
 
 
 open Lean Elab Tactic Meta

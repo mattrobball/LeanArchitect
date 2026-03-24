@@ -1,5 +1,9 @@
-import Architect.Load
-import Cli
+module
+
+public meta import Architect.Load
+public meta import Cli
+
+public meta section
 
 
 open Lean

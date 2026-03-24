@@ -1,8 +1,10 @@
-import Architect.Attribute
-import Architect.Basic
-import Architect.CollectUsed
-import Architect.Command
-import Architect.Content
-import Architect.Load
-import Architect.Output
-import Architect.Tactic
+module
+
+public meta import Architect.Attribute
+public import Architect.Basic
+public import Architect.CollectUsed
+public meta import Architect.Command
+public meta import Architect.Content
+public meta import Architect.Load
+public meta import Architect.Output
+public meta import Architect.Tactic
