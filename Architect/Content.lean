@@ -83,7 +83,7 @@ def getMainModuleBlueprintContents : CoreM (Array BlueprintContent) := do
   let nodes ← (blueprintExt.getEntries env).toArray.mapM fun (_, node) => BlueprintContent.node <$> node.toNodeWithPos
   -- When extractAll is true, also include non-tagged declarations from the main module
   let extractAllNodes ← do
-    if !blueprint.extractAll.get (← getOptions) then
+    if !isExtractAll (← getOptions) then
       pure #[]
     else
       let taggedNames : NameSet := (blueprintExt.getEntries env).toArray.foldl
@@ -109,7 +109,7 @@ def getBlueprintContents (module : Name) : CoreM (Array BlueprintContent) := do
   let nodes ← (blueprintExt.getModuleEntries env modIdx).mapM fun (_, node) => BlueprintContent.node <$> node.toNodeWithPos
   -- When extractAll is true, also include non-tagged declarations from the imported module
   let extractAllNodes ← do
-    if !blueprint.extractAll.get (← getOptions) then
+    if !isExtractAll (← getOptions) then
       pure #[]
     else
       let taggedNames : NameSet := (blueprintExt.getModuleEntries env modIdx).foldl

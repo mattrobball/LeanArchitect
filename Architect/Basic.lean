@@ -113,6 +113,13 @@ register_option blueprint.extractAll : Bool := {
   descr := "Whether to automatically extract all declarations in the module to the blueprint, without needing individual `@[blueprint]` annotations."
 }
 
+/-- Check if `blueprint.extractAll` is enabled, also accepting the `weak.` prefixed version
+(which Lake passes when the option is set via `leanOptions` on a library that doesn't
+import Architect during compilation). -/
+def isExtractAll (opts : Options) : Bool :=
+  blueprint.extractAll.get opts ||
+  opts.get `weak.blueprint.extractAll false
+
 /--
 Resolves an identifier using `realizeGlobalConstNoOverloadWithInfo`.
 Ignores unknown constants if `blueprint.ignoreUnknownConstants` is true (default: false).
