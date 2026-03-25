@@ -21,9 +21,6 @@ lean_exe add_position_info where
   root := `scripts.convert.add_position_info
   supportInterpreter := true
 
-require batteries from git
-  "https://github.com/leanprover-community/batteries" @ "v4.29.0-rc6"
-
 require Cli from git
   "https://github.com/mhuisi/lean4-cli" @ "v4.29.0-rc6"
 
