@@ -104,6 +104,11 @@ register_option blueprint.ignoreUnknownConstants : Bool := {
   descr := "Whether to ignore unknown constants in the `uses` and `proofUses` options of the `blueprint` attribute."
 }
 
+register_option blueprint.extractAll : Bool := {
+  defValue := false,
+  descr := "Whether to automatically extract all declarations in the module to the blueprint, without needing individual `@[blueprint]` annotations."
+}
+
 /--
 Resolves an identifier using `realizeGlobalConstNoOverloadWithInfo`.
 Ignores unknown constants if `blueprint.ignoreUnknownConstants` is true (default: false).

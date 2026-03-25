@@ -33,19 +33,97 @@ def BlueprintContent.order (l r : BlueprintContent) : Bool :=
   | some _, none => true
   | _, _ => false
 
+/-- Whether a name component looks internal/auxiliary. -/
+private def isAuxComponent (s : String) : Bool :=
+  s.startsWith "_" || s.startsWith "match_" || s.startsWith "proof_" || s.startsWith "eq_"
+
+/-- Whether a name is internal/auxiliary and should be skipped by `extractAll`. -/
+private def isInternalName (n : Name) : Bool :=
+  n.isInternal || go n
+where
+  go : Name → Bool
+    | .anonymous => false
+    | .num p _ => go p
+    | .str p s =>
+      isAuxComponent s
+      || s ∈ ["brecOn", "below", "casesOn", "noConfusion", "noConfusionType",
+              "recOn", "rec", "ind", "mk", "sizeOf_spec", "inject", "injEq"]
+      || go p
+
+/-- Create a default `Node` for a declaration name (used by `extractAll`). -/
+private def mkDefaultNode (env : Environment) (name : Name) : Node :=
+  let hasProof := wasOriginallyTheorem env name
+  let latexLabel := name.toString
+  let statement : NodePart := {
+    text := ""
+    uses := #[], excludes := #[]
+    usesLabels := #[], excludesLabels := #[]
+    latexEnv := if hasProof then "theorem" else "definition"
+  }
+  let proof : Option NodePart :=
+    if hasProof then
+      some {
+        text := ""
+        uses := #[], excludes := #[]
+        usesLabels := #[], excludesLabels := #[]
+        latexEnv := "proof"
+      }
+    else
+      none
+  { name, latexLabel, statement, proof
+    notReady := false, discussion := none, title := none }
+
 /-- Get blueprint contents of the current module. -/
 def getMainModuleBlueprintContents : CoreM (Array BlueprintContent) := do
   let env ← getEnv
   let nodes ← (blueprintExt.getEntries env).toArray.mapM fun (_, node) => BlueprintContent.node <$> node.toNodeWithPos
+  -- When extractAll is true, also include non-tagged declarations from the main module
+  let extractAllNodes ← do
+    if !blueprint.extractAll.get (← getOptions) then
+      pure #[]
+    else
+      let taggedNames : NameSet := (blueprintExt.getEntries env).toArray.foldl
+        (fun s (n, _) => s.insert n) {}
+      let mut result : Array BlueprintContent := #[]
+      for (name, _) in env.constants.map₂.toList do
+        if taggedNames.contains name then continue
+        if isInternalName name then continue
+        -- Skip constructors, recursors, and other auto-generated declarations
+        match env.find? name with
+        | some (.ctorInfo _) | some (.recInfo _) | some (.quotInfo _) => continue
+        | _ => pure ()
+        let node := mkDefaultNode env name
+        result := result.push (.node (← node.toNodeWithPos))
+      pure result
   let modDocs := (getMainModuleBlueprintDoc env).toArray.map BlueprintContent.modDoc
-  return (nodes ++ modDocs).qsort BlueprintContent.order
+  return (nodes ++ extractAllNodes ++ modDocs).qsort BlueprintContent.order
 
 /-- Get blueprint contents of an imported module. -/
 def getBlueprintContents (module : Name) : CoreM (Array BlueprintContent) := do
   let env ← getEnv
   let some modIdx := env.getModuleIdx? module | return #[]
   let nodes ← (blueprintExt.getModuleEntries env modIdx).mapM fun (_, node) => BlueprintContent.node <$> node.toNodeWithPos
+  -- When extractAll is true, also include non-tagged declarations from the imported module
+  let extractAllNodes ← do
+    if !blueprint.extractAll.get (← getOptions) then
+      pure #[]
+    else
+      let taggedNames : NameSet := (blueprintExt.getModuleEntries env modIdx).foldl
+        (fun s (n, _) => s.insert n) {}
+      let mut result : Array BlueprintContent := #[]
+      for (name, _) in env.constants.map₁.toList do
+        match env.getModuleIdxFor? name with
+        | some idx => if idx != modIdx then continue
+        | none => continue
+        if taggedNames.contains name then continue
+        if isInternalName name then continue
+        match env.find? name with
+        | some (.ctorInfo _) | some (.recInfo _) | some (.quotInfo _) => continue
+        | _ => pure ()
+        let node := mkDefaultNode env name
+        result := result.push (.node (← node.toNodeWithPos))
+      pure result
   let modDocs := (getModuleBlueprintDoc? env module).getD #[] |>.map BlueprintContent.modDoc
-  return (nodes ++ modDocs).qsort BlueprintContent.order
+  return (nodes ++ extractAllNodes ++ modDocs).qsort BlueprintContent.order
 
 end Architect
